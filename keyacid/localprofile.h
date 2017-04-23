@@ -1,7 +1,7 @@
 #ifndef LOCALPROFILE_H
 #define LOCALPROFILE_H
 
-#include <remoteprofile.h>
+#include "remoteprofile.h"
 
 class LocalProfile : public RemoteProfile {
 public:

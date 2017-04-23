@@ -8,7 +8,7 @@
 #include <QInputDialog>
 #include <QSettings>
 #include <QVariantList>
-#include <crypto.h>
+#include "crypto.h"
 
 namespace Ui {
     class Widget;
