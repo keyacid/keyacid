@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Widget</class>
+ <widget class="QWidget" name="Widget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>722</width>
+    <height>325</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>keyacid</string>
+  </property>
+  <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="3,1,3,2">
+   <item>
+    <widget class="QPlainTextEdit" name="plainText"/>
+   </item>
+   <item>
+    <layout class="QVBoxLayout" name="verticalLayout">
+     <item>
+      <widget class="QRadioButton" name="encrypt">
+       <property name="text">
+        <string>&gt;&gt;Encrypt&gt;&gt;</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QRadioButton" name="decrypt">
+       <property name="text">
+        <string>&lt;&lt;Decrypt&lt;&lt;</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QRadioButton" name="sign">
+       <property name="text">
+        <string>&gt;&gt;Sign&gt;&gt;</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QRadioButton" name="verify">
+       <property name="text">
+        <string>&gt;&gt;Verify&lt;&lt;</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="file">
+       <property name="text">
+        <string>File</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="operate">
+       <property name="text">
+        <string>Operate</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QPlainTextEdit" name="cipherText"/>
+   </item>
+   <item>
+    <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,3,0,0,1,0">
+     <item>
+      <widget class="QLabel" name="remoteProfilesLabel">
+       <property name="text">
+        <string>Remote Profiles:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QListView" name="remoteProfiles"/>
+     </item>
+     <item>
+      <widget class="QPushButton" name="newRemoteProfile">
+       <property name="text">
+        <string>New</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="localProfilesLabel">
+       <property name="text">
+        <string>Local Profiles:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QListView" name="localProfiles"/>
+     </item>
+     <item>
+      <widget class="QPushButton" name="newLocalProfile">
+       <property name="text">
+        <string>New</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <resources/>
+ <connections/>
+</ui>
