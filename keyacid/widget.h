@@ -26,6 +26,28 @@ private:
     QStringListModel remoteProfilesModel,localProfilesModel;
     void saveProfiles();
     void loadProfiles();
+    bool checkSelectedRemoteProfile();
+    bool checkSelectedLocalProfile();
+    RemoteProfile getSelectedRemoteProfile();
+    LocalProfile getSelectedLocalProfile();
+    void encryptMessage();
+    void encryptFile();
+    void anonymouslyEncryptMessage();
+    void anonymouslyEncryptFile();
+    void decryptMessage();
+    void decryptFile();
+    void anonymouslyDecryptMessage();
+    void anonymouslyDecryptFile();
+    void signMessage();
+    void signFile();
+    void verifyMessage();
+    void verifyFile();
+    bool loadFile(QByteArray &data);
+    bool saveFile(const QByteArray &data);
+    QByteArray getPlainText();
+    QByteArray getCipherText();
+    void setPlainText(const QByteArray &data);
+    void setCipherText(const QByteArray &data);
 private slots:
     void encryptClicked();
     void decryptClicked();

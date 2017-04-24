@@ -68,6 +68,7 @@ void Widget::encryptClicked() {
         ui->plainText->setReadOnly(false);
         ui->cipherText->setReadOnly(true);
     }
+    ui->anonymous->setEnabled(true);
 }
 
 void Widget::decryptClicked() {
@@ -78,6 +79,7 @@ void Widget::decryptClicked() {
         ui->plainText->setReadOnly(true);
         ui->cipherText->setReadOnly(false);
     }
+    ui->anonymous->setEnabled(true);
 }
 
 void Widget::signClicked() {
@@ -88,6 +90,8 @@ void Widget::signClicked() {
         ui->plainText->setReadOnly(false);
         ui->cipherText->setReadOnly(true);
     }
+    ui->anonymous->setEnabled(false);
+    ui->anonymous->setChecked(false);
 }
 
 void Widget::verifyClicked() {
@@ -98,6 +102,8 @@ void Widget::verifyClicked() {
         ui->plainText->setReadOnly(false);
         ui->cipherText->setReadOnly(false);
     }
+    ui->anonymous->setEnabled(false);
+    ui->anonymous->setChecked(false);
 }
 
 void Widget::fileClicked() {
@@ -123,148 +129,284 @@ void Widget::fileClicked() {
     }
 }
 
+bool Widget::checkSelectedRemoteProfile() {
+    if (ui->remoteProfiles->selectionModel()->selectedIndexes().empty()) {
+        QMessageBox::critical(this,"Error","You have to select a remote profile!");
+        return false;
+    }
+    return true;
+}
+
+bool Widget::checkSelectedLocalProfile() {
+    if (ui->localProfiles->selectionModel()->selectedIndexes().empty()) {
+        QMessageBox::critical(this,"Error","You have to select a local profile!");
+        return false;
+    }
+    return true;
+}
+
+RemoteProfile Widget::getSelectedRemoteProfile() {
+    return remoteProfiles[ui->remoteProfiles->selectionModel()->selectedIndexes().front().row()];
+}
+
+LocalProfile Widget::getSelectedLocalProfile() {
+    return localProfiles[ui->localProfiles->selectionModel()->selectedIndexes().front().row()];
+}
+
+void Widget::encryptMessage() {
+    if (getPlainText()=="") {
+        QMessageBox::critical(this,"Error","You have to encrypt something!");
+        return;
+    }
+    QByteArray encrypted=Crypto::encrypt(getPlainText(),getSelectedLocalProfile(),getSelectedRemoteProfile());
+    setCipherText(encrypted);
+    if (encrypted=="") {
+        QMessageBox::critical(this,"Error","Encrypt failed! Corrupted profile.");
+    }
+}
+
+void Widget::encryptFile() {
+    QByteArray unencrypted;
+    if (!loadFile(unencrypted)) {
+        return;
+    }
+    if (unencrypted=="") {
+        QMessageBox::critical(this,"Error","Don't encrypt an empty file!");
+        return;
+    }
+    QByteArray encrypted=Crypto::encrypt(unencrypted,getSelectedLocalProfile(),getSelectedRemoteProfile());
+    if (encrypted=="") {
+        QMessageBox::critical(this,"Error","Encrypt failed! Corrupted profile.");
+        return;
+    }
+    saveFile(encrypted);
+}
+
+void Widget::anonymouslyEncryptMessage() {
+    if (getPlainText()=="") {
+        QMessageBox::critical(this,"Error","You have to encrypt something!");
+        return;
+    }
+    QByteArray encrypted=Crypto::sealedEncrypt(getPlainText(),getSelectedRemoteProfile());
+    setCipherText(encrypted);
+    if (encrypted=="") {
+        QMessageBox::critical(this,"Error","Encrypt failed! Corrupted profile.");
+    }
+}
+
+void Widget::anonymouslyEncryptFile() {
+    QByteArray unencrypted;
+    if (!loadFile(unencrypted)) {
+        return;
+    }
+    if (unencrypted=="") {
+        QMessageBox::critical(this,"Error","Don't encrypt an empty file!");
+        return;
+    }
+    QByteArray encrypted=Crypto::sealedEncrypt(unencrypted,getSelectedRemoteProfile());
+    if (encrypted=="") {
+        QMessageBox::critical(this,"Error","Encrypt failed! Corrupted profile.");
+        return;
+    }
+    saveFile(encrypted);
+}
+
+void Widget::decryptMessage() {
+    QByteArray decrypted=Crypto::decrypt(getCipherText(),getSelectedRemoteProfile(),getSelectedLocalProfile());
+    setPlainText(decrypted);
+    if (decrypted=="") {
+        QMessageBox::critical(this,"Error","Decrypt failed! Wrong profile or tampered data.");
+    }
+}
+
+void Widget::decryptFile() {
+    QByteArray undecrypted;
+    if (!loadFile(undecrypted)) {
+        return;
+    }
+    QByteArray decrypted=Crypto::decrypt(undecrypted,getSelectedRemoteProfile(),getSelectedLocalProfile());
+    if (decrypted=="") {
+        QMessageBox::critical(this,"Error","Decrypt failed! Wrong profile or tampered data.");
+        return;
+    }
+    saveFile(decrypted);
+}
+
+void Widget::anonymouslyDecryptMessage() {
+    QByteArray decrypted=Crypto::sealedDecrypt(getCipherText(),getSelectedLocalProfile());
+    setPlainText(decrypted);
+    if (decrypted=="") {
+        QMessageBox::critical(this,"Error","Decrypt failed! Wrong profile or tampered data.");
+    }
+}
+
+void Widget::anonymouslyDecryptFile() {
+    QByteArray undecrypted;
+    if (!loadFile(undecrypted)) {
+        return;
+    }
+    QByteArray decrypted=Crypto::sealedDecrypt(undecrypted,getSelectedLocalProfile());
+    if (decrypted=="") {
+        QMessageBox::critical(this,"Error","Decrypt failed! Wrong profile or tampered data.");
+        return;
+    }
+    saveFile(decrypted);
+}
+
+void Widget::signMessage() {
+    QByteArray signature=Crypto::sign(getPlainText(),getSelectedLocalProfile());
+    setCipherText(signature);
+    if (signature=="") {
+        QMessageBox::critical(this,"Error","Sign failed! Corrupted profile.");
+    }
+}
+
+void Widget::signFile() {
+    QByteArray data;
+    loadFile(data);
+    QByteArray signature=Crypto::sign(data,getSelectedLocalProfile());
+    setCipherText(signature);
+    if (signature=="") {
+        QMessageBox::critical(this,"Error","Sign failed! Corrupted profile.");
+    }
+}
+
+void Widget::verifyMessage() {
+    if (Crypto::verify(getPlainText(),getCipherText(),getSelectedRemoteProfile())) {
+        QMessageBox::information(this,"Success","Message verified!\nThis message is signed by "+getSelectedRemoteProfile().name);
+    } else {
+        QMessageBox::critical(this,"Error","Verify failed! Wrong profile or tampered data.");
+    }
+}
+
+void Widget::verifyFile() {
+    QByteArray data;
+    if (!loadFile(data)) {
+        return;
+    }
+    if (Crypto::verify(data,getCipherText(),getSelectedRemoteProfile())) {
+        QMessageBox::information(this,"Success","File verified!\nThis file is signed by "+getSelectedRemoteProfile().name);
+    } else {
+        QMessageBox::critical(this,"Error","Verify failed! Wrong profile or tampered data.");
+    }
+}
+
+bool Widget::loadFile(QByteArray &data) {
+    QString filename=QFileDialog::getOpenFileName(this,"Load File");
+    if (filename.size()==0) {
+        return false;
+    }
+    QFile inFile(filename);
+    if (!inFile.open(QIODevice::ReadOnly)) {
+        QMessageBox::critical(this,"Error","Failed to open the file!");
+        return false;
+    }
+    data=inFile.readAll();
+    inFile.close();
+    return true;
+}
+
+bool Widget::saveFile(const QByteArray &data) {
+    QString filename=QFileDialog::getSaveFileName(this,"Save File");
+    if (filename.size()==0) {
+        return false;
+    }
+    QFile outFile(filename);
+    if (!outFile.open(QIODevice::WriteOnly)) {
+        QMessageBox::critical(this,"Error","Failed to open the file!");
+        return false;
+    }
+    outFile.write(data);
+    outFile.close();
+    return true;
+}
+
+QByteArray Widget::getPlainText() {
+    return ui->plainText->toPlainText().toUtf8();
+}
+
+QByteArray Widget::getCipherText() {
+    return QByteArray::fromBase64(ui->cipherText->toPlainText().toLocal8Bit());
+}
+
+void Widget::setPlainText(const QByteArray &data) {
+    ui->plainText->setPlainText(data);
+}
+
+void Widget::setCipherText(const QByteArray &data) {
+    ui->cipherText->setPlainText(data.toBase64());
+}
+
 void Widget::operateClicked() {
-    QModelIndexList selectedRemoteProfiles=ui->remoteProfiles->selectionModel()->selectedIndexes();
-    QModelIndexList selectedLocalProfiles=ui->localProfiles->selectionModel()->selectedIndexes();
     if (ui->encrypt->isChecked()) {
-        if (selectedLocalProfiles.empty()) {
-            QMessageBox::critical(this,"Error","You have to select a local profile!");
-            return;
-        }
-        if (selectedRemoteProfiles.empty()) {
-            QMessageBox::critical(this,"Error","You have to select a remote profile!");
-            return;
-        }
         if (ui->file->isChecked()) {
-            QFile inFile(QFileDialog::getOpenFileName(this,"Select a file to encrypt"));
-            if (!inFile.open(QIODevice::ReadOnly)) {
-                QMessageBox::critical(this,"Error","Failed to open the file!");
-                return;
+            if (ui->anonymous->isChecked()) {
+                if (!checkSelectedRemoteProfile()) {
+                    return;
+                }
+                anonymouslyEncryptFile();
+            } else {
+                if (!checkSelectedLocalProfile()||!checkSelectedRemoteProfile()) {
+                    return;
+                }
+                encryptFile();
             }
-            QByteArray unencrypted=inFile.readAll();
-            inFile.close();
-            if (unencrypted=="") {
-                QMessageBox::critical(this,"Error","Don't encrypt an empty file!");
-                return;
-            }
-            QByteArray encrypted=Crypto::encrypt(unencrypted,localProfiles[selectedLocalProfiles.front().row()],remoteProfiles[selectedRemoteProfiles.front().row()]);
-            if (encrypted=="") {
-                QMessageBox::critical(this,"Error","Encrypt failed! Corrupted profile.");
-                return;
-            }
-            QFile outFile(QFileDialog::getSaveFileName(this,"Select a file to save"));
-            if (!outFile.open(QIODevice::WriteOnly)) {
-                QMessageBox::critical(this,"Error","Failed to open the file!");
-                return;
-            }
-            outFile.write(encrypted);
-            outFile.close();
         } else {
-            if (ui->plainText->toPlainText()=="") {
-                QMessageBox::critical(this,"Error","You have to encrypt something!");
-                return;
-            }
-            QByteArray encrypted=Crypto::encrypt(ui->plainText->toPlainText().toUtf8(),localProfiles[selectedLocalProfiles.front().row()],remoteProfiles[selectedRemoteProfiles.front().row()]);
-            ui->cipherText->setPlainText(encrypted.toBase64());
-            if (encrypted=="") {
-                QMessageBox::critical(this,"Error","Encrypt failed! Corrupted profile.");
-                return;
+            if (ui->anonymous->isChecked()) {
+                if (!checkSelectedRemoteProfile()) {
+                    return;
+                }
+                anonymouslyEncryptMessage();
+            } else {
+                if (!checkSelectedLocalProfile()||!checkSelectedRemoteProfile()) {
+                    return;
+                }
+                encryptMessage();
             }
         }
     } else if (ui->decrypt->isChecked()) {
-        if (selectedLocalProfiles.empty()) {
-            QMessageBox::critical(this,"Error","You have to select a local profile!");
-            return;
-        }
-        if (selectedRemoteProfiles.empty()) {
-            QMessageBox::critical(this,"Error","You have to select a remote profile!");
-            return;
-        }
         if (ui->file->isChecked()) {
-            QFile inFile(QFileDialog::getOpenFileName(this,"Select a file to decrypt"));
-            if (!inFile.open(QIODevice::ReadOnly)) {
-                QMessageBox::critical(this,"Error","Failed to open the file!");
-                return;
+            if (ui->anonymous->isChecked()) {
+                if (!checkSelectedLocalProfile()) {
+                    return;
+                }
+                anonymouslyDecryptFile();
+            } else {
+                if (!checkSelectedLocalProfile()||!checkSelectedRemoteProfile()) {
+                    return;
+                }
+                decryptFile();
             }
-            QByteArray undecrypted=inFile.readAll();
-            inFile.close();
-            QByteArray decrypted=Crypto::decrypt(undecrypted,remoteProfiles[selectedRemoteProfiles.front().row()],localProfiles[selectedLocalProfiles.front().row()]);
-            if (decrypted=="") {
-                QMessageBox::critical(this,"Error","Decrypt failed! Wrong profile or tampered data.");
-                return;
-            }
-            QFile outFile(QFileDialog::getSaveFileName(this,"Select a file to save"));
-            if (!outFile.open(QIODevice::WriteOnly)) {
-                QMessageBox::critical(this,"Error","Failed to open the file!");
-                return;
-            }
-            outFile.write(decrypted);
-            outFile.close();
         } else {
-            QByteArray decrypted=Crypto::decrypt(QByteArray::fromBase64(ui->cipherText->toPlainText().toLocal8Bit()),remoteProfiles[selectedRemoteProfiles.front().row()],localProfiles[selectedLocalProfiles.front().row()]);
-            ui->plainText->setPlainText(decrypted);
-            if (decrypted=="") {
-                QMessageBox::critical(this,"Error","Decrypt failed! Wrong profile or tampered data.");
-                return;
+            if (ui->anonymous->isChecked()) {
+                if (!checkSelectedLocalProfile()) {
+                    return;
+                }
+                anonymouslyDecryptMessage();
+            } else {
+                if (!checkSelectedLocalProfile()||!checkSelectedRemoteProfile()) {
+                    return;
+                }
+                decryptMessage();
             }
         }
     } else if (ui->sign->isChecked()) {
-        if (selectedLocalProfiles.empty()) {
-            QMessageBox::critical(this,"Error","You have to select a local profile!");
+        if (!checkSelectedLocalProfile()) {
             return;
         }
         if (ui->file->isChecked()) {
-            QFile inFile(QFileDialog::getOpenFileName(this,"Select a file to sign"));
-            if (!inFile.open(QIODevice::ReadOnly)) {
-                QMessageBox::critical(this,"Error","Failed to open the file!");
-                return;
-            }
-            QByteArray data=inFile.readAll();
-            inFile.close();
-            QByteArray signature=Crypto::sign(data,localProfiles[selectedLocalProfiles.front().row()]);
-            ui->cipherText->setPlainText(signature.toBase64());
-            if (signature=="") {
-                QMessageBox::critical(this,"Error","Sign failed! Corrupted profile.");
-                return;
-            }
+            signFile();
         } else {
-            QByteArray signature=Crypto::sign(ui->plainText->toPlainText().toUtf8(),localProfiles[selectedLocalProfiles.front().row()]);
-            ui->cipherText->setPlainText(signature.toBase64());
-            if (signature=="") {
-                QMessageBox::critical(this,"Error","Sign failed! Corrupted profile.");
-                return;
-            }
+            signMessage();
         }
     } else if (ui->verify->isChecked()) {
-        if (selectedRemoteProfiles.empty()) {
-            QMessageBox::critical(this,"Error","You have to select a remote profile!");
+        if (!checkSelectedRemoteProfile()) {
             return;
         }
         if (ui->file->isChecked()) {
-            QFile inFile(QFileDialog::getOpenFileName(this,"Select a file to sign"));
-            if (!inFile.open(QIODevice::ReadOnly)) {
-                QMessageBox::critical(this,"Error","Failed to open the file!");
-                return;
-            }
-            QByteArray data=inFile.readAll();
-            inFile.close();
-            bool verify=Crypto::verify(data,QByteArray::fromBase64(ui->cipherText->toPlainText().toLocal8Bit()),remoteProfiles[selectedRemoteProfiles.front().row()]);
-            if (verify) {
-                QMessageBox::information(this,"Success","File verified!\nThis file is signed by "+selectedRemoteProfiles.front().data().toString());
-                return;
-            } else {
-                QMessageBox::critical(this,"Error","Verify failed! Wrong profile or tampered data.");
-                return;
-            }
+            verifyFile();
         } else {
-            bool verify=Crypto::verify(ui->plainText->toPlainText().toUtf8(),QByteArray::fromBase64(ui->cipherText->toPlainText().toLocal8Bit()),remoteProfiles[selectedRemoteProfiles.front().row()]);
-            if (verify) {
-                QMessageBox::information(this,"Success","Message verified!\nThis message is signed by "+selectedRemoteProfiles.front().data().toString());
-                return;
-            } else {
-                QMessageBox::critical(this,"Error","Verify failed! Wrong profile or tampered data.");
-                return;
-            }
+            verifyMessage();
         }
     }
 }

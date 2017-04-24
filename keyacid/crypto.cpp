@@ -37,6 +37,38 @@ QByteArray Crypto::decrypt(const QByteArray &data,const RemoteProfile &from,cons
     return QByteArray();
 }
 
+QByteArray Crypto::sealedEncrypt(const QByteArray &data,const RemoteProfile &to) {
+    if (!to.isValidKey()) {
+        return QByteArray();
+    }
+    QByteArray ret(crypto_box_SEALBYTES+data.length(),0);
+    if (!crypto_box_seal((unsigned char*)ret.data(),
+                         (unsigned char*)data.data(),
+                         data.length(),
+                         (unsigned char*)to.curve25519PublicKey().data())) {
+        return ret;
+    }
+    return QByteArray();
+}
+
+QByteArray Crypto::sealedDecrypt(const QByteArray &data,const LocalProfile &to) {
+    if (!to.isValidKey()) {
+        return QByteArray();
+    }
+    if (data.length()<int(crypto_box_SEALBYTES)) {
+        return QByteArray();
+    }
+    QByteArray ret(data.length()-crypto_box_SEALBYTES,0);
+    if (!crypto_box_seal_open((unsigned char*)ret.data(),
+                              (unsigned char*)data.data(),
+                              data.length(),
+                              (unsigned char*)to.curve25519PublicKey().data(),
+                              (unsigned char*)to.curve25519PrivateKey().data())) {
+        return ret;
+    }
+    return QByteArray();
+}
+
 QByteArray Crypto::sign(const QByteArray &data,const LocalProfile &from) {
     if (!from.isValidKey()) {
         return QByteArray();

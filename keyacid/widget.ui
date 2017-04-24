@@ -51,6 +51,13 @@
       </widget>
      </item>
      <item>
+      <widget class="QCheckBox" name="anonymous">
+       <property name="text">
+        <string>Anonymous</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QCheckBox" name="file">
        <property name="text">
         <string>File</string>
