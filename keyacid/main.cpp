@@ -1,4 +1,5 @@
 #include "widget.h"
+#include "disclaimerdialog.h"
 #include <QApplication>
 #include <sodium.h>
 
@@ -9,5 +10,7 @@ int main(int argc,char **argv) {
     QApplication a(argc,argv);
     Widget w;
     w.show();
+    DisclaimerDialog d;
+    d.show();
     return a.exec();
 }
