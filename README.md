@@ -6,7 +6,7 @@ Secure and easy crypto for everyone!
 
 Keyacid is an offline crypto program inspired by [keybase](https://keybase.io). Given that keybase stores its users' private key in its server, it should not be considered secure. Thus, I wrote keyacid to make encryption and decryption completely offline.
 
-More information about keyacid can be found in the [GitBook](https://keyacid.gitbooks.io/keyacid-manual/content/).
+More information about keyacid in Mandarin can be found in the [GitBook](https://keyacid.gitbooks.io/keyacid-manual/content/).
 
 ## Dependencies
 
