@@ -13,6 +13,7 @@ Widget::Widget(QWidget *parent):QWidget(parent),ui(new Ui::Widget) {
     connect(ui->newLocalProfile,SIGNAL(clicked(bool)),this,SLOT(newLocalProfileClicked()));
     connect(ui->remoteProfiles,SIGNAL(doubleClicked(QModelIndex)),this,SLOT(remoteProfilesDoubleClicked(QModelIndex)));
     connect(ui->localProfiles,SIGNAL(doubleClicked(QModelIndex)),this,SLOT(localProfilesDoubleClicked(QModelIndex)));
+    ui->cipherText->setWordWrapMode(QTextOption::WrapAnywhere);
     ui->remoteProfiles->setEditTriggers(QAbstractItemView::NoEditTriggers);
     ui->localProfiles->setEditTriggers(QAbstractItemView::NoEditTriggers);
     ui->remoteProfiles->setModel(&remoteProfilesModel);
