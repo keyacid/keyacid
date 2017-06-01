@@ -1,3 +1,5 @@
+<img height="200" width="200" src="https://raw.githubusercontent.com/keyacid/keyacid/stable/keyacid/icons/origin.png" />
+
 # keyacid
 
 Secure and easy crypto for everyone!
