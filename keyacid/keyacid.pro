@@ -14,5 +14,9 @@ HEADERS += widget.h \
            disclaimerdialog.h
 FORMS += widget.ui \
          disclaimerdialog.ui
-osx: INCLUDEPATH += /usr/local/include/
+osx {
+    INCLUDEPATH += /usr/local/include/
+    ICON = icons/macos.icns
+}
+win32: RC_ICONS = icons/win.ico
 LIBS += -lsodium
