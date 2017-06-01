@@ -19,13 +19,13 @@ QByteArray RemoteProfile::curve25519PublicKey() const {
 QVariantMap RemoteProfile::toVariantMap() const {
     QVariantMap ret;
     ret["name"]=name;
-    ret["publicKey"]=publicKey;
+    ret["publicKey"]=publicKey.toBase64();
     return ret;
 }
 
 RemoteProfile RemoteProfile::fromVariantMap(const QVariantMap &variantMap) {
     RemoteProfile ret;
     ret.name=variantMap["name"].toString();
-    ret.publicKey=variantMap["publicKey"].toByteArray();
+    ret.publicKey=QByteArray::fromBase64(variantMap["publicKey"].toByteArray());
     return ret;
 }

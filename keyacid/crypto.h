@@ -5,6 +5,10 @@
 
 class Crypto {
 public:
+    static QByteArray salt,key;
+    static void setPassword(const QByteArray &password);
+    static QByteArray secretEncrypt(const QByteArray &data);
+    static QByteArray secretDecrypt(const QByteArray &data);
     static QByteArray encrypt(const QByteArray &data,const LocalProfile &from,const RemoteProfile &to);
     static QByteArray decrypt(const QByteArray &data,const RemoteProfile &from,const LocalProfile &to);
     static QByteArray sealedEncrypt(const QByteArray &data,const RemoteProfile &to);

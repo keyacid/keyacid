@@ -13,19 +13,31 @@ Widget::Widget(QWidget *parent):QWidget(parent),ui(new Ui::Widget) {
     connect(ui->newLocalProfile,SIGNAL(clicked(bool)),this,SLOT(newLocalProfileClicked()));
     connect(ui->remoteProfiles,SIGNAL(doubleClicked(QModelIndex)),this,SLOT(remoteProfilesDoubleClicked(QModelIndex)));
     connect(ui->localProfiles,SIGNAL(doubleClicked(QModelIndex)),this,SLOT(localProfilesDoubleClicked(QModelIndex)));
+    connect(ui->changePassword,SIGNAL(clicked(bool)),this,SLOT(changePasswordClicked()));
     ui->cipherText->setWordWrapMode(QTextOption::WrapAnywhere);
     ui->remoteProfiles->setEditTriggers(QAbstractItemView::NoEditTriggers);
     ui->localProfiles->setEditTriggers(QAbstractItemView::NoEditTriggers);
     ui->remoteProfiles->setModel(&remoteProfilesModel);
     ui->localProfiles->setModel(&localProfilesModel);
     fileClicked();
+    bool ok;
+    QString password=QInputDialog::getText(this,"Password","Please enter the password\nIf it's the first time that you run keyacid, please set one",QLineEdit::Password,"",&ok);
+    if (!ok) {
+        exit(0);
+    }
+    Crypto::setPassword(password.toLocal8Bit());
     loadProfiles();
 }
 
 void Widget::loadProfiles() {
     QSettings settings("yvbbrjdr","keyacid");
-    if (settings.contains("keyacid/remoteProfileList")) {
-        QVariantList remoteProfileList=settings.value("keyacid/remoteProfileList").toList();
+    if (settings.contains("keyacid/remoteProfiles")) {
+        QByteArray decrypted=Crypto::secretDecrypt(QByteArray::fromBase64(settings.value("keyacid/remoteProfiles").toByteArray()));
+        if (decrypted=="") {
+            QMessageBox::critical(this,"Password","You entered a wrong password!");
+            exit(0);
+        }
+        QVariantList remoteProfileList=QJsonDocument::fromJson(decrypted).toVariant().toList();
         foreach (QVariant remoteProfile,remoteProfileList) {
             RemoteProfile tmp=RemoteProfile::fromVariantMap(remoteProfile.toMap());
             remoteProfiles.append(tmp);
@@ -33,7 +45,12 @@ void Widget::loadProfiles() {
             list.append(tmp.name);
             remoteProfilesModel.setStringList(list);
         }
-        QVariantList localProfileList=settings.value("keyacid/localProfileList").toList();
+        decrypted=Crypto::secretDecrypt(QByteArray::fromBase64(settings.value("keyacid/localProfiles").toByteArray()));
+        if (decrypted=="") {
+            QMessageBox::critical(this,"Password","You entered a wrong password!");
+            exit(0);
+        }
+        QVariantList localProfileList=QJsonDocument::fromJson(decrypted).toVariant().toList();
         foreach (QVariant localProfile,localProfileList) {
             LocalProfile tmp=LocalProfile::fromVariantMap(localProfile.toMap());
             localProfiles.append(tmp);
@@ -53,8 +70,8 @@ void Widget::saveProfiles() {
     foreach (LocalProfile localProfile,localProfiles) {
         localProfileList.append(localProfile.toVariantMap());
     }
-    settings.setValue("keyacid/remoteProfileList",remoteProfileList);
-    settings.setValue("keyacid/localProfileList",localProfileList);
+    settings.setValue("keyacid/remoteProfiles",Crypto::secretEncrypt(QJsonDocument::fromVariant(remoteProfileList).toJson()).toBase64());
+    settings.setValue("keyacid/localProfiles",Crypto::secretEncrypt(QJsonDocument::fromVariant(localProfileList).toJson()).toBase64());
 }
 
 Widget::~Widget() {
@@ -574,4 +591,15 @@ void Widget::localProfilesDoubleClicked(const QModelIndex &index) {
     list[row]=tmp.name;
     localProfilesModel.setStringList(list);
     saveProfiles();
+}
+
+void Widget::changePasswordClicked() {
+    bool ok;
+    QString password=QInputDialog::getText(this,"Password","Enter a new password",QLineEdit::Password,"",&ok);
+    if (!ok) {
+        return;
+    }
+    Crypto::setPassword(password.toLocal8Bit());
+    saveProfiles();
+    QMessageBox::information(this,"Password","New password is set successfully!");
 }

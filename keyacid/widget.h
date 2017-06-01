@@ -8,6 +8,7 @@
 #include <QInputDialog>
 #include <QSettings>
 #include <QVariantList>
+#include <QJsonDocument>
 #include "crypto.h"
 
 namespace Ui {
@@ -59,6 +60,7 @@ private slots:
     void newLocalProfileClicked();
     void remoteProfilesDoubleClicked(const QModelIndex &index);
     void localProfilesDoubleClicked(const QModelIndex &index);
+    void changePasswordClicked();
 };
 
 #endif // WIDGET_H

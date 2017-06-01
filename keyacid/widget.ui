@@ -77,7 +77,14 @@
     <widget class="QPlainTextEdit" name="cipherText"/>
    </item>
    <item>
-    <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,3,0,0,1,0">
+    <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,0,3,0,0,1,0">
+     <item>
+      <widget class="QPushButton" name="changePassword">
+       <property name="text">
+        <string>Change Password</string>
+       </property>
+      </widget>
+     </item>
      <item>
       <widget class="QLabel" name="remoteProfilesLabel">
        <property name="text">

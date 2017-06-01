@@ -44,15 +44,15 @@ QByteArray LocalProfile::curve25519PrivateKey() const {
 QVariantMap LocalProfile::toVariantMap() const {
     QVariantMap ret;
     ret["name"]=name;
-    ret["publicKey"]=publicKey;
-    ret["privateKey"]=privateKey;
+    ret["publicKey"]=publicKey.toBase64();
+    ret["privateKey"]=privateKey.toBase64();
     return ret;
 }
 
 LocalProfile LocalProfile::fromVariantMap(const QVariantMap &variantMap) {
     LocalProfile ret;
     ret.name=variantMap["name"].toString();
-    ret.publicKey=variantMap["publicKey"].toByteArray();
-    ret.privateKey=variantMap["privateKey"].toByteArray();
+    ret.publicKey=QByteArray::fromBase64(variantMap["publicKey"].toByteArray());
+    ret.privateKey=QByteArray::fromBase64(variantMap["privateKey"].toByteArray());
     return ret;
 }
