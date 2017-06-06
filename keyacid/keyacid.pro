@@ -16,6 +16,7 @@ FORMS += widget.ui \
          disclaimerdialog.ui
 osx {
     INCLUDEPATH += /usr/local/include/
+    LIBS += -L/usr/local/lib/
     ICON = icons/macos.icns
 }
 win32: RC_ICONS = icons/win.ico
